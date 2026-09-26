@@ -1,5 +1,5 @@
 const PAGE_SIZE = 18;
-const PACK_COUNT = 8;
+const FALLBACK_PACK_COUNT = 4;
 const MAX_COMPARE = 4;
 
 const state = {
@@ -532,19 +532,42 @@ function updateView(view) {
   render();
 }
 
-async function loadPackedData() {
-  const parts = await Promise.all(Array.from({ length: PACK_COUNT }, (_, i) =>
-    fetch(`./data/full-${String(i).padStart(2,"0")}.txt`).then(response => {
+async function decodeGzipBase64(parts) {
+  const binary = atob(parts.join(""));
+  const compressed = Uint8Array.from(binary, char => char.charCodeAt(0));
+  if (!("DecompressionStream" in window)) throw new Error("Browser lacks DecompressionStream");
+  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const json = await new Response(stream).text();
+  return JSON.parse(json);
+}
+
+async function fetchTextParts(prefix, count) {
+  return Promise.all(Array.from({ length: count }, (_, i) =>
+    fetch(`./data/${prefix}-${String(i).padStart(2,"0")}.txt`, { cache: "force-cache" }).then(response => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.text();
     })
   ));
-  const binary = atob(parts.join(""));
-  const compressed = Uint8Array.from(binary, char => char.charCodeAt(0));
-  if (!("DecompressionStream" in window)) throw new Error("Browser lacks DecompressionStream");
-  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("brotli"));
-  const json = await new Response(stream).text();
-  return JSON.parse(json);
+}
+
+async function loadPackedData() {
+  try {
+    const manifestResponse = await fetch("./data/full-manifest.json", { cache: "no-cache" });
+    if (manifestResponse.ok) {
+      const manifest = await manifestResponse.json();
+      if (manifest?.count > 0 && manifest?.compression === "gzip-base64") {
+        const parts = await fetchTextParts("full", manifest.count);
+        const journals = await decodeGzipBase64(parts);
+        if (journals.length !== manifest.records) throw new Error("Full dataset record count mismatch");
+        return journals;
+      }
+    }
+  } catch (error) {
+    console.warn("Full dataset unavailable; using fallback dataset.", error);
+  }
+
+  const fallbackParts = await fetchTextParts("packed", FALLBACK_PACK_COUNT);
+  return decodeGzipBase64(fallbackParts);
 }
 
 let searchTimer;

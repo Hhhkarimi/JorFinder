@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="جست‌وجو و مقایسهٔ ۹۷۰ نشریهٔ علمی بر اساس حوزه، نمایه، نرخ پذیرش و زمان داوری." />
+    <meta name="theme-color" content="#102d34" />
+    <title>مجله‌یاب — فهرست نشریات علمی</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23102d34'/%3E%3Cpath d='M18 16h28v7H25v9h17v7H25v9h21v7H18z' fill='%234ee0c1'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#results">رفتن به نتایج</a>
+
+    <header class="masthead">
+      <div class="masthead__inner">
+        <div class="brand" aria-label="مجله‌یاب">
+          <span class="brand__mark" aria-hidden="true">م</span>
+          <div>
+            <p class="brand__name">مجله‌یاب</p>
+            <p class="brand__note">راهنمای انتخاب نشریهٔ علمی</p>
+          </div>
+        </div>
+        <dl class="catalog-stats" aria-label="مشخصات فهرست">
+          <div><dt>نشریه</dt><dd>۹۷۰</dd></div>
+          <div><dt>حوزه</dt><dd>۱۶</dd></div>
+          <div><dt>صفحهٔ منبع</dt><dd>۴۹۷</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="search-panel" aria-labelledby="page-title">
+        <div class="search-panel__heading">
+          <div>
+            <p class="eyebrow">فهرست یکپارچهٔ نشریات</p>
+            <h1 id="page-title">نشریهٔ مناسب پژوهش‌تان را پیدا کنید</h1>
+          </div>
+          <p class="search-panel__caption">عنوان، ناشر، موضوع یا شرح اهداف نشریه را جست‌وجو کنید.</p>
+        </div>
+
+        <div class="search-box">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.9a8.25 8.25 0 1 1-16.5 0 8.25 8.25 0 0 1 16.5 0Z"/></svg>
+          <label class="sr-only" for="search">جست‌وجوی نشریه</label>
+          <input id="search" type="search" autocomplete="off" placeholder="مثلاً Elsevier، آموزش، تاریخ هنر…" />
+          <kbd aria-hidden="true">/</kbd>
+        </div>
+
+        <div class="filters" aria-label="فیلترهای فهرست">
+          <label>
+            <span>حوزهٔ علمی</span>
+            <select id="subject-filter"><option value="">همهٔ حوزه‌ها</option></select>
+          </label>
+          <label>
+            <span>رتبهٔ نمایه</span>
+            <select id="quartile-filter">
+              <option value="">همهٔ رتبه‌ها</option>
+              <option value="Q1">Q1</option>
+              <option value="Q2">Q2</option>
+              <option value="Q3">Q3</option>
+              <option value="Q4">Q4</option>
+              <option value="other">سایر نمایه‌ها</option>
+            </select>
+          </label>
+          <label>
+            <span>دادهٔ در دسترس</span>
+            <select id="data-filter">
+              <option value="">بدون محدودیت</option>
+              <option value="acceptance">نرخ پذیرش</option>
+              <option value="decision">زمان تصمیم اول</option>
+              <option value="iranian">سابقهٔ نویسندگان ایرانی</option>
+            </select>
+          </label>
+          <label>
+            <span>مرتب‌سازی</span>
+            <select id="sort-filter">
+              <option value="source">ترتیب فهرست</option>
+              <option value="title">عنوان نشریه</option>
+              <option value="acceptance">کمترین نرخ پذیرش</option>
+              <option value="decision">سریع‌ترین تصمیم اول</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="results-section" aria-labelledby="results-heading">
+        <div class="results-bar">
+          <div>
+            <p class="results-kicker">نتایج</p>
+            <h2 id="results-heading" aria-live="polite">در حال خواندن فهرست…</h2>
+          </div>
+          <button id="clear-filters" class="text-button" type="button" hidden>پاک‌کردن فیلترها</button>
+        </div>
+
+        <div id="loading" class="loading-grid" aria-label="در حال بارگذاری">
+          <div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div id="error-state" class="state-card" hidden>
+          <span class="state-card__icon" aria-hidden="true">!</span>
+          <h3>فهرست بارگذاری نشد</h3>
+          <p>اتصال را بررسی کنید و صفحه را دوباره باز کنید.</p>
+        </div>
+        <div id="empty-state" class="state-card" hidden>
+          <span class="state-card__icon" aria-hidden="true">۰</span>
+          <h3>نتیجه‌ای پیدا نشد</h3>
+          <p>عبارت کوتاه‌تری بنویسید یا یکی از فیلترها را بردارید.</p>
+          <button class="solid-button" type="button" data-clear>نمایش همهٔ نشریات</button>
+        </div>
+
+        <div id="results" class="results-grid"></div>
+        <nav id="pagination" class="pagination" aria-label="صفحه‌بندی نتایج" hidden>
+          <button id="next-page" type="button">صفحهٔ بعد</button>
+          <span id="page-indicator"></span>
+          <button id="prev-page" type="button">صفحهٔ قبل</button>
+        </nav>
+      </section>
+    </main>
+
+    <dialog id="journal-dialog" class="journal-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-shell">
+        <button id="close-dialog" class="icon-button" type="button" aria-label="بستن جزئیات">×</button>
+        <div id="dialog-content"></div>
+      </div>
+    </dialog>
+
+    <footer>
+      <p>داده‌ها از فایل مرجع ۴۹۷ صفحه‌ای استخراج شده‌اند. مقادیر «اعلام نشده» به همان صورت منبع حفظ شده‌اند.</p>
+    </footer>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

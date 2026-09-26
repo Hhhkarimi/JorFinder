@@ -163,6 +163,8 @@ footer { background:var(--navy); color:#b9ceca; border-top:4px solid var(--mint)
 .about-section h2 { margin:4px 0 14px; font-size:clamp(1.6rem,2.5vw,2.4rem); line-height:1.4; }
 .about-section__intro>p:last-child { margin:0; color:var(--muted); font-size:.93rem; }
 .about-section__source { padding:25px 29px; border:1px solid var(--line); border-right:4px solid var(--teal); border-radius:4px 16px 4px 16px; background:#fff; box-shadow:var(--shadow); }
+.about-section__logo { position:relative; width:min(100%,280px); height:205px; margin:0 auto 16px; overflow:hidden; background:#fff; }
+.about-section__logo img { position:absolute; top:0; left:50%; width:794px; height:486px; max-width:none; transform:translateX(-50%); }
 .about-section__institution { margin:0; color:var(--teal); font-weight:900; }
 .about-section__source h3 { margin:8px 0 22px; font-size:1.12rem; line-height:1.75; }
 .about-section__source dl { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0; }

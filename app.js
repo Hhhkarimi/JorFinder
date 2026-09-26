@@ -542,7 +542,7 @@ async function loadPackedData() {
   const binary = atob(parts.join(""));
   const compressed = Uint8Array.from(binary, char => char.charCodeAt(0));
   if (!("DecompressionStream" in window)) throw new Error("Browser lacks DecompressionStream");
-  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("brotli"));
   const json = await new Response(stream).text();
   return JSON.parse(json);
 }

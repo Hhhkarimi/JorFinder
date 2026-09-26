@@ -237,13 +237,26 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-Promise.all(Array.from({ length: 10 }, (_, i) =>
-  fetch(`./data/magazines-${String(i).padStart(2, "0")}.json`).then((response) => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  })
-))
-  .then((parts) => parts.flat())
+async function loadPackedData() {
+  const parts = await Promise.all(
+    Array.from({ length: 4 }, (_, i) =>
+      fetch(`./data/packed-${String(i).padStart(2, "0")}.txt`).then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.text();
+      })
+    )
+  );
+  const binary = atob(parts.join(""));
+  const compressed = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  if (!("DecompressionStream" in window)) {
+    throw new Error("This browser does not support gzip decompression.");
+  }
+  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const json = await new Response(stream).text();
+  return JSON.parse(json);
+}
+
+loadPackedData()
   .then((journals) => {
     state.journals = journals.map((journal) => ({ ...journal, _search: searchableText(journal) }));
     populateSubjects();

@@ -74,7 +74,6 @@ function searchableText(journal) {
     journal.publisher,
     journal.subject_fa,
     journal.subject_en,
-    journal.coverage_scope_fa,
   ].join(" "));
 }
 
@@ -187,7 +186,6 @@ function clearFilters() {
 function showJournal(id) {
   const journal = state.journals.find((item) => item.record_id === Number(id));
   if (!journal) return;
-  const scope = journal.coverage_scope_fa || "در منبع شرح جداگانه‌ای برای حوزهٔ پوشش ثبت نشده است.";
   els.dialogContent.innerHTML = `
     <header class="dialog-header">
       <div class="dialog-header__meta">
@@ -204,10 +202,6 @@ function showJournal(id) {
       <div><dt>پذیرش نهایی</dt><dd>${numberOrDash(journal.submission_to_acceptance_days, " روز")}</dd></div>
       <div><dt>نویسندگان ایرانی</dt><dd>${numberOrDash(journal.iranian_author_count, " مقاله")}</dd></div>
     </dl>
-    <section class="dialog-section">
-      <h3>حوزه‌های پوشش</h3>
-      <p>${escapeHtml(scope)}</p>
-    </section>
     <p class="source-note">ردیف ${faDigits.format(journal.record_id)} · صفحهٔ ${faDigits.format(journal.source_page_start)} فایل مرجع</p>`;
   els.dialog.showModal();
 }
@@ -243,7 +237,7 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-Promise.all(Array.from({ length: 20 }, (_, i) =>
+Promise.all(Array.from({ length: 10 }, (_, i) =>
   fetch(`./data/magazines-${String(i).padStart(2, "0")}.json`).then((response) => {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.json();

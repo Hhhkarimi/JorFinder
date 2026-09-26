@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2026-09-26",
+    "scope": "app",
+    "macrostructure": "Index-First",
+    "theme": "JorFinder locked teal",
+    "enrichment": "none",
+    "brief": "Improve the catalogue UI and UX while preserving the existing information architecture"
+  }
+]

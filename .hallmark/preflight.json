@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-26",
+  "font": "Vazirmatn variable, locally hosted",
+  "palette": "navy, teal, mint on cool paper",
+  "motion": "motion-cut; no animation library",
+  "spacing": "legacy mixed scale upgraded to named 4-point tokens",
+  "framework": "vanilla HTML, CSS and JavaScript",
+  "design_system": "DESIGN.md"
+}

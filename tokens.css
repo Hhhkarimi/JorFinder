@@ -19,6 +19,9 @@
   --color-backdrop: oklch(13% 0.03 205 / 78%);
   --color-paper-glass: oklch(99% 0.004 180 / 92%);
   --color-ink-glass: oklch(22% 0.045 205 / 96%);
+  --color-on-dark-muted: oklch(83% 0.02 180);
+  --color-on-dark-rule: oklch(100% 0 0 / 16%);
+  --color-on-dark-rule-strong: oklch(100% 0 0 / 22%);
 
   --font-display: Vazirmatn, Tahoma, Arial, sans-serif;
   --font-body: Vazirmatn, Tahoma, Arial, sans-serif;

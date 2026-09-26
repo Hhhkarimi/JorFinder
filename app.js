@@ -42,6 +42,9 @@ const els = {
   catalog: document.querySelector("#catalog"),
   recommender: document.querySelector("#recommender"),
   search: document.querySelector("#search"),
+  filterToggle: document.querySelector("#filter-toggle"),
+  filterCount: document.querySelector("#filter-count"),
+  filters: document.querySelector("#catalog-filters"),
   subject: document.querySelector("#subject-filter"),
   quartile: document.querySelector("#quartile-filter"),
   publisher: document.querySelector("#publisher-filter"),
@@ -329,6 +332,10 @@ function renderPersistentUi() {
   els.compareTray.hidden = count === 0;
   els.compareOpen.disabled = count < 2;
   els.compareShow.disabled = count < 2;
+  const activeFilterCount = [state.subject, state.quartile, state.publisher, state.availability, state.acceptanceBand, state.linkStatus]
+    .filter(Boolean).length;
+  els.filterCount.textContent = faNumber.format(activeFilterCount);
+  els.filterToggle.classList.toggle("is-active", activeFilterCount > 0);
 }
 
 function saveFavorites() {
@@ -698,6 +705,11 @@ els.export.addEventListener("click", exportCatalogue);
 els.sort.addEventListener("change", e => { state.sort = e.target.value; applyFilters(); });
 els.clear.addEventListener("click", clearFilters);
 document.querySelector("[data-clear]").addEventListener("click", clearFilters);
+els.filterToggle.addEventListener("click", () => {
+  const collapsed = els.filters.dataset.collapsed === "true";
+  els.filters.dataset.collapsed = String(!collapsed);
+  els.filterToggle.setAttribute("aria-expanded", String(collapsed));
+});
 els.favoritesOnly.addEventListener("click", () => {
   activateWorkspace("catalog", { updateHash:true });
   state.favoritesOnly = !state.favoritesOnly;

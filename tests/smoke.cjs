@@ -47,6 +47,7 @@ function element(key) {
 const events = {};
 element('#tab-catalog').dataset.workspace = 'catalog';
 element('#tab-recommender').dataset.workspace = 'recommender';
+element('#catalog-filters').dataset.collapsed = 'true';
 element('#workspace-tabs').querySelectorAll = () => [element('#tab-catalog'), element('#tab-recommender')];
 const location = { hash: '', pathname: '/', search: '' };
 const sandbox = {
@@ -116,6 +117,9 @@ waitForCatalogue().then(async () => {
   location.hash = '#recommender';
   events.hashchange();
   assert.equal(element('#recommender').hidden, false);
+  element('#filter-toggle').listeners.click();
+  assert.equal(element('#catalog-filters').dataset.collapsed, 'false');
+  assert.equal(element('#filter-toggle').attributes['aria-expanded'], 'true');
   element('#link-filter').value = 'direct';
   element('#link-filter').listeners.change({ target: element('#link-filter') });
   assert.match(element('#results-heading').textContent, /۲۷ نشریه/);

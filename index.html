@@ -74,7 +74,10 @@
             <p class="section-kicker">جست‌وجوی هوشمند</p>
             <h2 id="search-title">در تمام اطلاعات مجله جست‌وجو کن</h2>
           </div>
-          <button id="clear-filters" class="link-button" type="button" hidden>پاک‌کردن همه فیلترها</button>
+          <div class="filter-actions">
+            <button id="filter-toggle" class="filter-toggle" type="button" aria-controls="catalog-filters" aria-expanded="false">فیلترها <b id="filter-count">۰</b></button>
+            <button id="clear-filters" class="link-button" type="button" hidden>پاک‌کردن همه فیلترها</button>
+          </div>
         </div>
 
         <label class="search-field" for="search">
@@ -84,7 +87,7 @@
           <kbd aria-hidden="true">/</kbd>
         </label>
 
-        <div class="filters">
+        <div id="catalog-filters" class="filters" data-collapsed="true">
           <label><span>حوزه علمی</span><select id="subject-filter"><option value="">همه حوزه‌ها</option></select></label>
           <label><span>رتبه / نمایه</span><select id="quartile-filter"><option value="">همه رتبه‌ها</option></select></label>
           <label><span>ناشر</span><select id="publisher-filter"><option value="">همه ناشران</option></select></label>

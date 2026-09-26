@@ -590,7 +590,11 @@ async function loadPackedData() {
 }
 
 function exportCatalogue() {
-  const records = state.journals.map(({ _search, ...journal }) => journal);
+  const records = state.journals.map(({ _search, ...journal }) => {
+    if (journal.record_type !== "journal") return journal;
+    const link = externalLinkFor(journal);
+    return { ...journal, journal_url: link.url, journal_url_type: link.type };
+  });
   const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json;charset=utf-8" });
   const anchor = document.createElement("a");
   anchor.href = URL.createObjectURL(blob);

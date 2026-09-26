@@ -62,6 +62,7 @@ const sandbox = {
 };
 vm.createContext(sandbox);
 element('#recommend-submit').disabled = true;
+vm.runInContext(fs.readFileSync(path.join(root, 'catalog-core.js'), 'utf8'), sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'recommender.js'), 'utf8'), sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'app.js'), 'utf8'), sandbox);
 

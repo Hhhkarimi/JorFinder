@@ -1,5 +1,6 @@
 const PAGE_SIZE = 18;
 const MAX_COMPARE = 4;
+const { normalize, hasNumber, quartileLabel, buildSearchText, filterAndSort } = window.CatalogCore;
 
 function savedValue(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -137,25 +138,10 @@ const PUBLISHER_DOMAINS = [
   [/qscience|hamad bin khalifa/i, "qscience.com"],
 ];
 
-function normalize(value = "") {
-  return String(value)
-    .toLowerCase()
-    .normalize("NFKC")
-    .replace(/[يى]/g, "ی")
-    .replace(/ك/g, "ک")
-    .replace(/[ًٌٍَُِّْـ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>'"]/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
   })[char]);
-}
-
-function hasNumber(value) {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 function num(value, suffix = "") {
@@ -172,32 +158,10 @@ function clampText(value, max = 165) {
   return text.length > max ? `${text.slice(0, max).trim()}…` : text;
 }
 
-function quartileLabel(value) {
-  const text = String(value || "").trim();
-  return text && text !== "اعلام نشده" ? text : "نامشخص";
-}
-
 function rawMetric(journal, rawKey, numericKey, numericSuffix = "") {
   const raw = String(journal[rawKey] ?? "").trim();
   if (raw) return raw;
   return hasNumber(journal[numericKey]) ? `${faNumber.format(journal[numericKey])}${numericSuffix}` : "—";
-}
-
-function buildSearchText(journal) {
-  return normalize([
-    journal.journal_title,
-    journal.publisher,
-    journal.subject_fa,
-    journal.subject_en,
-    journal.index_quartile,
-    journal.coverage_scope_fa,
-    journal.aims_and_scope_fa,
-    journal.data_corrections,
-    journal.acceptance_rate_raw,
-    journal.iranian_authors_raw,
-    journal.submission_to_acceptance_raw,
-    journal.submission_to_first_decision_raw,
-  ].join(" "));
 }
 
 function externalLinkFor(journal) {
@@ -266,49 +230,11 @@ function renderHeroStats() {
   els.statLinks.textContent = faNumber.format(withLinks);
 }
 
-function acceptanceMatches(journal) {
-  if (!state.acceptanceBand) return true;
-  const value = journal.acceptance_rate_percent;
-  if (!hasNumber(value)) return false;
-  if (state.acceptanceBand === "lt20") return value < 20;
-  if (state.acceptanceBand === "20to40") return value >= 20 && value <= 40;
-  if (state.acceptanceBand === "gt40") return value > 40;
-  return true;
-}
-
 function applyFilters({ resetPage = true } = {}) {
   if (resetPage) state.page = 1;
-  const terms = normalize(state.query).split(" ").filter(Boolean);
-
-  state.filtered = state.journals.filter((journal) => {
-    if (journal.record_type !== "journal") return false;
-    if (state.favoritesOnly && !state.favorites.has(journal.record_id)) return false;
-    if (state.subject && journal.subject_fa !== state.subject) return false;
-    if (state.quartile && quartileLabel(journal.index_quartile) !== state.quartile) return false;
-    if (state.publisher && journal.publisher !== state.publisher) return false;
-    if (state.linkStatus && linkType(journal) !== state.linkStatus) return false;
-    if (state.availability === "aims" && !String(journal.aims_and_scope_fa || "").trim()) return false;
-    if (state.availability === "acceptance" && !hasNumber(journal.acceptance_rate_percent)) return false;
-    if (state.availability === "decision" && !hasNumber(journal.submission_to_first_decision_days)) return false;
-    if (state.availability === "iranian" && !hasNumber(journal.iranian_author_count)) return false;
-    if (!acceptanceMatches(journal)) return false;
-    if (terms.length && !terms.every(term => journal._search.includes(term))) return false;
-    return true;
+  state.filtered = filterAndSort(state.journals, state, {
+    favorites: state.favorites, linkType, collatorFa, collatorEn,
   });
-
-  const numericSort = (selector, direction = 1) => (a,b) => {
-    const av = selector(a), bv = selector(b);
-    if (!hasNumber(av)) return hasNumber(bv) ? 1 : 0;
-    if (!hasNumber(bv)) return -1;
-    return (av-bv) * direction;
-  };
-
-  if (state.sort === "title") state.filtered.sort((a,b) => collatorEn.compare(a.journal_title,b.journal_title));
-  else if (state.sort === "acceptance") state.filtered.sort(numericSort(j => j.acceptance_rate_percent));
-  else if (state.sort === "decision") state.filtered.sort(numericSort(j => j.submission_to_first_decision_days));
-  else if (state.sort === "final") state.filtered.sort(numericSort(j => j.submission_to_acceptance_days));
-  else if (state.sort === "iranian") state.filtered.sort(numericSort(j => j.iranian_author_count, -1));
-  else state.filtered.sort((a,b) => a.record_id - b.record_id);
 
   render();
 }

@@ -1,0 +1,12 @@
+{
+  "name": "jorfinder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "راهنمای جست‌وجو و پیشنهاد نشریات علوم انسانی",
+  "scripts": {
+    "test": "node tests/catalog-core.cjs && node tests/recommender.cjs && node tests/smoke.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

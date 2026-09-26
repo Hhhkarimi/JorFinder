@@ -19,7 +19,7 @@ const persian = engine.recommend({
 });
 assert.ok(persian.length > 0);
 assert.ok(persian.some(result => result.journal.subject_fa === 'آموزش'));
-assert.ok(persian.every((result, i) => result.score >= 10 && result.score <= 99 && (i === 0 || persian[i - 1].score >= result.score)));
+assert.ok(persian.every((result, i) => result.rankScore >= .1 && result.rankScore <= 1 && (i === 0 || persian[i - 1].rankScore >= result.rankScore)));
 assert.equal(new Set(persian.map(result => result.journal.journal_title)).size, persian.length);
 
 const english = engine.recommend({

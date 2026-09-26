@@ -87,7 +87,8 @@ waitForCatalogue().then(async () => {
   element('#paper-keywords').value = 'آموزش، فناوری، هوش مصنوعی';
   element('#recommend-form').listeners.submit({ preventDefault() {} });
   assert.equal(element('#recommend-results').hidden, false);
-  assert.match(element('#recommend-list').innerHTML, /تطابق محتوایی/);
+  assert.match(element('#recommend-list').innerHTML, /مبنای پیشنهاد/);
+  assert.doesNotMatch(element('#recommend-list').innerHTML, /درصد تطابق|تطابق محتوایی|٪/);
   assert.match(element('#recommend-status').textContent, /نشریهٔ متمایز/);
   vm.runInContext('toggleFavorite(1)', sandbox);
   assert.ok(events.hashchange);

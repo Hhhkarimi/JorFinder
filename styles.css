@@ -180,7 +180,7 @@ footer { background:var(--navy); color:#b9ceca; border-top:4px solid var(--mint)
 @media(max-width:380px){.topbar__inner{gap:6px}.brand__mark{display:none}.brand strong{font-size:.88rem}.top-actions .ghost-button{padding:4px 5px;font-size:.64rem}.ghost-button b{min-width:18px;margin-right:2px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.journal-card{transition:none}.loading-grid div{animation:none}}
 
-/* Manuscript matching keeps evidence and the limits of the score visible. */
+/* Manuscript matching keeps the reasons for the ranking visible. */
 .hero__recommend-link { display:inline-flex; align-items:center; min-height:42px; margin-top:22px; padding:7px 17px; border:1px solid var(--mint); border-radius:9px; color:var(--navy); background:var(--mint); text-decoration:none; font-weight:900; }
 .recommender { scroll-margin-top:95px; margin-top:24px; padding:28px; border:1px solid #c2d8cf; border-radius:5px 18px 5px 18px; background:#f9fbf7; box-shadow:0 10px 30px rgba(7,31,42,.04); }
 .recommender__heading { display:flex; justify-content:space-between; align-items:end; gap:12px; }
@@ -202,7 +202,7 @@ footer { background:var(--navy); color:#b9ceca; border-top:4px solid var(--mint)
 .recommend-results__heading h3 { margin:0; font-size:1.13rem; }
 .recommend-results__heading p { margin:0; color:var(--muted); font-size:.72rem; }
 .recommend-list { display:grid; gap:10px; margin:15px 0 0; padding:0; list-style:none; }
-.recommendation { display:grid; grid-template-columns:38px minmax(0,1fr) 120px; gap:15px; align-items:start; padding:17px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+.recommendation { display:grid; grid-template-columns:38px minmax(0,1fr); gap:15px; align-items:start; padding:17px; border:1px solid var(--line); border-radius:12px; background:#fff; }
 .recommendation__rank { color:var(--teal); font-weight:900; font-size:.9rem; }
 .recommendation__title { margin:3px 0 2px; direction:ltr; text-align:left; font-size:1.06rem; line-height:1.45; overflow-wrap:anywhere; }
 .recommendation__publisher { margin:0; color:var(--muted); font-size:.75rem; }
@@ -211,8 +211,6 @@ footer { background:var(--navy); color:#b9ceca; border-top:4px solid var(--mint)
 .recommendation__terms { margin:7px 0 0; color:var(--muted); font-size:.72rem; }
 .recommendation__actions { display:flex; flex-wrap:wrap; gap:8px 15px; margin-top:11px; }
 .recommendation__actions button,.recommendation__actions a { border:0; padding:0; background:transparent; color:var(--teal); font-size:.79rem; font-weight:900; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
-.recommendation__score { display:grid; justify-items:center; padding:8px 6px; border:1px solid #b4ddd0; border-radius:9px; background:var(--mint-soft); color:var(--teal); text-align:center; }
-.recommendation__score strong { font-size:1.4rem; line-height:1.4; }
-.recommendation__score span { font-size:.69rem; }
-@media(max-width:750px){.recommender{padding:20px}.recommend-form{grid-template-columns:1fr}.recommend-field--title,.recommend-field--abstract{grid-column:auto}.recommend-form__action{justify-content:flex-start;padding-top:0}.recommend-form__action p{text-align:right}.recommendation{grid-template-columns:25px minmax(0,1fr) 90px;gap:9px;padding:13px}.recommendation__score strong{font-size:1.1rem}}
-@media(max-width:480px){.recommender__heading{display:block}.recommender__number{display:none}.recommendation{grid-template-columns:26px minmax(0,1fr)}.recommendation__score{grid-column:1/-1;justify-items:start;display:flex;gap:6px;align-items:center;padding:4px 10px}.recommendation__score strong{font-size:1rem}}
+@media(max-width:750px){.recommender{padding:20px}.recommend-form{grid-template-columns:1fr}.recommend-field--title,.recommend-field--abstract{grid-column:auto}.recommend-form__action{justify-content:flex-start;padding-top:0}.recommend-form__action p{text-align:right}.recommendation{grid-template-columns:25px minmax(0,1fr);gap:9px;padding:13px}}
+@media(max-width:600px){.topbar__inner{flex-wrap:wrap;gap:8px;padding-block:8px}.top-actions{margin-right:auto}}
+@media(max-width:480px){.recommender__heading{display:block}.recommender__number{display:none}.recommendation{grid-template-columns:26px minmax(0,1fr)}.recommender,.about-section{scroll-margin-top:130px}}

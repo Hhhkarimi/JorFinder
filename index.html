@@ -5,13 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="راهنمای جست‌وجو، مقایسه و پیشنهاد ۹۷۰ نشریهٔ حوزهٔ علوم انسانی بر پایهٔ اطلاعات فهرست مرجع." />
   <meta name="theme-color" content="#071f2a" />
+  <link rel="canonical" href="https://jor-finder.vercel.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="fa_IR" />
+  <meta property="og:url" content="https://jor-finder.vercel.app/" />
+  <meta property="og:title" content="راهنمای نشریات علوم انسانی" />
+  <meta property="og:description" content="جست‌وجو، مقایسه و پیشنهاد نشریه از میان ۹۷۰ نشریهٔ علوم انسانی." />
+  <meta property="og:image" content="https://jor-finder.vercel.app/assets/source-title-page.png" />
+  <meta property="og:image:alt" content="صفحهٔ عنوان فهرست نشریات علوم انسانی دانشگاه شهید چمران اهواز" />
+  <meta name="twitter:card" content="summary_large_image" />
   <title>راهنمای نشریات علوم انسانی — جست‌وجو و پیشنهاد نشریه</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23071f2a'/%3E%3Cpath d='M12 18q10-4 20 2v29q-10-6-20-2zm40 0q-10-4-20 2v29q10-6 20-2z' fill='none' stroke='%2359e3c4' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preload" href="./assets/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <a class="skip-link" href="#results">رفتن به نتایج</a>
+  <a class="skip-link" href="#workspace-tabs">رفتن به ابزارهای نشریات</a>
 
   <header class="topbar">
     <div class="shell topbar__inner">
@@ -53,7 +62,12 @@
       </div>
     </section>
 
-    <section class="shell search-workspace" aria-labelledby="search-title">
+    <div class="shell workspace">
+      <div id="workspace-tabs" class="workspace-tabs" role="tablist" aria-label="روش یافتن نشریه">
+        <button id="tab-catalog" class="workspace-tab is-active" type="button" role="tab" aria-controls="catalog" aria-selected="true" tabindex="0" data-workspace="catalog"><span aria-hidden="true">۰۱</span> جست‌وجوی نشریات</button>
+        <button id="tab-recommender" class="workspace-tab" type="button" role="tab" aria-controls="recommender" aria-selected="false" tabindex="-1" data-workspace="recommender"><span aria-hidden="true">۰۲</span> پیشنهاد نشریه</button>
+      </div>
+    <section id="catalog" class="search-workspace" role="tabpanel" aria-labelledby="tab-catalog" tabindex="0">
       <div class="search-card">
         <div class="search-card__head">
           <div>
@@ -65,8 +79,9 @@
 
         <label class="search-field" for="search">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.4-4.4m2.4-5.9a8.3 8.3 0 1 1-16.6 0 8.3 8.3 0 0 1 16.6 0Z"/></svg>
+          <span class="visually-hidden">جست‌وجو در نشریات</span>
           <input id="search" type="search" autocomplete="off" placeholder="مثلاً: Elsevier، آموزش، هوش مصنوعی، literary theory…" />
-          <kbd>/</kbd>
+          <kbd aria-hidden="true">/</kbd>
         </label>
 
         <div class="filters">
@@ -80,40 +95,6 @@
         </div>
         <div class="catalog-help"><span>مقادیر «—» در منبع عدد مشخصی ندارند. متن خام همهٔ ردیف‌ها در «جزئیات کامل» آمده است.</span><button id="export-data" class="link-button" type="button" disabled>دریافت دادهٔ کامل JSON ↓</button></div>
       </div>
-
-      <section id="recommender" class="recommender" aria-labelledby="recommender-title">
-        <div class="recommender__heading">
-          <div>
-            <p class="section-kicker">پیشنهاددهندهٔ مجله</p>
-            <h2 id="recommender-title">مقاله‌ات به کدام نشریه نزدیک‌تر است؟</h2>
-          </div>
-          <span class="recommender__number" aria-hidden="true">۰۱ / تطبیق محتوایی</span>
-        </div>
-        <p class="recommender__intro">عنوان، چکیده و کلیدواژه‌ها را وارد کن تا نشریات این فهرست بر اساس متن حوزهٔ پوشش و اهدافشان رتبه‌بندی شوند.</p>
-        <form id="recommend-form" class="recommend-form">
-          <label class="recommend-field recommend-field--title" for="paper-title">عنوان مقاله
-            <input id="paper-title" name="title" type="text" dir="auto" required minlength="5" maxlength="300" placeholder="مثلاً تأثیر هوش مصنوعی بر آموزش معلمان" />
-          </label>
-          <label class="recommend-field recommend-field--abstract" for="paper-abstract">چکیده
-            <textarea id="paper-abstract" name="abstract" dir="auto" required minlength="30" maxlength="6000" rows="5" placeholder="مسئله، روش و موضوع اصلی پژوهش را بنویسید…"></textarea>
-          </label>
-          <label class="recommend-field recommend-field--keywords" for="paper-keywords">کلمات کلیدی
-            <input id="paper-keywords" name="keywords" type="text" dir="auto" required maxlength="500" placeholder="آموزش؛ فناوری؛ یادگیری ماشین" />
-          </label>
-          <div class="recommend-form__action">
-            <button id="recommend-submit" class="primary-button" type="submit" disabled>پیدا کردن نشریات مرتبط</button>
-            <p id="recommend-status" role="status" aria-live="polite">در حال آماده‌سازی فهرست…</p>
-          </div>
-        </form>
-        <div id="recommend-results" class="recommend-results" hidden>
-          <div class="recommend-results__heading">
-            <h3 id="recommend-results-title">نشریات پیشنهادی</h3>
-            <p>ترتیب پیشنهادها بر پایهٔ اشتراک موضوعی با اطلاعات همین فهرست است؛ پیش از انتخاب، حوزهٔ نشریه را بررسی کنید.</p>
-          </div>
-          <ol id="recommend-list" class="recommend-list" aria-labelledby="recommend-results-title"></ol>
-        </div>
-        <p class="recommender__privacy">متن مقاله فقط در همین مرورگر بررسی می‌شود و به سرور ارسال یا ذخیره نمی‌شود. اطلاعات نشریات را پیش از ارسال مقاله در سایت ناشر بررسی کنید.</p>
-      </section>
 
       <div class="results-toolbar">
         <div>
@@ -152,6 +133,44 @@
         <button id="prev-page" type="button">صفحه قبل</button>
       </nav>
     </section>
+
+      <section id="recommender" class="recommender" role="tabpanel" aria-labelledby="tab-recommender" tabindex="0" hidden>
+        <div class="recommender__heading">
+          <div>
+            <p class="section-kicker">پیشنهاددهندهٔ نشریه</p>
+            <h2 id="recommender-title">مقاله‌ات به کدام نشریه نزدیک‌تر است؟</h2>
+          </div>
+          <span class="recommender__number" aria-hidden="true">بر پایهٔ متن فهرست</span>
+        </div>
+        <p class="recommender__intro">عنوان، چکیده و کلیدواژه‌ها را وارد کن تا نشریات این فهرست بر اساس متن حوزهٔ پوشش و اهدافشان رتبه‌بندی شوند.</p>
+        <form id="recommend-form" class="recommend-form">
+          <label class="recommend-field recommend-field--title" for="paper-title">عنوان مقاله
+            <input id="paper-title" name="title" type="text" dir="auto" required minlength="5" maxlength="300" aria-describedby="paper-title-error" placeholder="مثلاً تأثیر هوش مصنوعی بر آموزش معلمان…" />
+            <span id="paper-title-error" class="field-error" hidden></span>
+          </label>
+          <label class="recommend-field recommend-field--abstract" for="paper-abstract">چکیده
+            <textarea id="paper-abstract" name="abstract" dir="auto" required minlength="30" maxlength="6000" rows="5" aria-describedby="paper-abstract-error" placeholder="مسئله، روش و موضوع اصلی پژوهش را بنویسید…"></textarea>
+            <span id="paper-abstract-error" class="field-error" hidden></span>
+          </label>
+          <label class="recommend-field recommend-field--keywords" for="paper-keywords">کلمات کلیدی
+            <input id="paper-keywords" name="keywords" type="text" dir="auto" required maxlength="500" aria-describedby="paper-keywords-error" placeholder="آموزش؛ فناوری؛ یادگیری ماشین…" />
+            <span id="paper-keywords-error" class="field-error" hidden></span>
+          </label>
+          <div class="recommend-form__action">
+            <button id="recommend-submit" class="primary-button" type="submit" disabled>پیدا کردن نشریات مرتبط</button>
+            <p id="recommend-status" role="status" aria-live="polite">در حال آماده‌سازی فهرست…</p>
+          </div>
+        </form>
+        <div id="recommend-results" class="recommend-results" hidden>
+          <div class="recommend-results__heading">
+            <h3 id="recommend-results-title">نشریات پیشنهادی</h3>
+            <p>ترتیب پیشنهادها بر پایهٔ اشتراک موضوعی با اطلاعات همین فهرست است؛ پیش از انتخاب، حوزهٔ نشریه را بررسی کنید.</p>
+          </div>
+          <ol id="recommend-list" class="recommend-list" aria-labelledby="recommend-results-title"></ol>
+        </div>
+        <p class="recommender__privacy">متن مقاله فقط در همین مرورگر بررسی می‌شود و به سرور ارسال یا ذخیره نمی‌شود. اطلاعات نشریات را پیش از ارسال مقاله در سایت ناشر بررسی کنید.</p>
+      </section>
+    </div>
 
     <section id="about" class="shell about-section" aria-labelledby="about-title">
       <div class="about-section__intro">

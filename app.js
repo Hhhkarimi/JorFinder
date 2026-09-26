@@ -1,5 +1,4 @@
 const PAGE_SIZE = 18;
-const FALLBACK_PACK_COUNT = 4;
 const MAX_COMPARE = 4;
 
 const state = {
@@ -11,6 +10,7 @@ const state = {
   publisher: "",
   availability: "",
   acceptanceBand: "",
+  linkStatus: "",
   sort: "source",
   page: 1,
   view: localStorage.getItem("jorfinder:view") || "grid",
@@ -26,6 +26,8 @@ const els = {
   publisher: document.querySelector("#publisher-filter"),
   availability: document.querySelector("#data-filter"),
   acceptanceBand: document.querySelector("#acceptance-filter"),
+  linkStatus: document.querySelector("#link-filter"),
+  export: document.querySelector("#export-data"),
   sort: document.querySelector("#sort-filter"),
   results: document.querySelector("#results"),
   heading: document.querySelector("#results-heading"),
@@ -54,7 +56,7 @@ const els = {
   statTotal: document.querySelector("#stat-total"),
   statSubjects: document.querySelector("#stat-subjects"),
   statAims: document.querySelector("#stat-aims"),
-  statDecision: document.querySelector("#stat-decision"),
+  statLinks: document.querySelector("#stat-links"),
 };
 
 const faNumber = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 1 });
@@ -68,6 +70,14 @@ const DIRECT_URLS = new Map([
   ["Journal of Literary Studies", "https://www.tandfonline.com/journals/rjls20"],
   ["Journal of Information Studies & Technology", "https://www.qscience.com/content/journals/jist"],
   ["Journal of Contemporary Painting", "https://www.intellectbooks.com/journal-of-contemporary-painting"],
+  ["Learning and Instruction", "https://www.sciencedirect.com/journal/learning-and-instruction"],
+  ["Journal of Educational Psychology", "https://www.apa.org/pubs/journals/edu"],
+  ["Review of Educational Research", "https://journals.sagepub.com/home/RER"],
+  ["Educational Psychologist", "https://www.tandfonline.com/journals/hedp20"],
+  ["Journal of Computer Assisted Learning", "https://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1365-2729"],
+  ["Journal of Learning Analytics", "https://www.solaresearch.org/publications/journal/"],
+  ["Internet and Higher Education", "https://shop.elsevier.com/journals/the-internet-and-higher-education/1096-7516"],
+  ["Education and Information Technologies", "https://link.springer.com/journal/10639"],
 ]);
 
 const PUBLISHER_DOMAINS = [
@@ -186,6 +196,10 @@ function externalLinkFor(journal) {
   };
 }
 
+function linkType(journal) {
+  return DIRECT_URLS.has(journal.journal_title) ? "direct" : "search";
+}
+
 function registryLinkFor(journal) {
   return `https://www.google.com/search?q=${encodeURIComponent(`site:portal.issn.org "${journal.journal_title}"`)}`;
 }
@@ -196,6 +210,7 @@ function populateFilters() {
   const publisherCounts = new Map();
 
   for (const journal of state.journals) {
+    if (journal.record_type !== "journal") continue;
     if (journal.subject_fa) subjectCounts.set(journal.subject_fa, (subjectCounts.get(journal.subject_fa) || 0) + 1);
     const q = quartileLabel(journal.index_quartile);
     quartileCounts.set(q, (quartileCounts.get(q) || 0) + 1);
@@ -216,13 +231,14 @@ function populateFilters() {
 }
 
 function renderHeroStats() {
-  const subjects = new Set(state.journals.map(j => j.subject_fa).filter(Boolean)).size;
-  const withAims = state.journals.filter(j => String(j.aims_and_scope_fa || "").trim()).length;
-  const withDecision = state.journals.filter(j => hasNumber(j.submission_to_first_decision_days)).length;
-  els.statTotal.textContent = faNumber.format(state.journals.length);
+  const journals = state.journals.filter(j => j.record_type === "journal");
+  const subjects = new Set(journals.map(j => j.subject_fa).filter(Boolean)).size;
+  const withAims = journals.filter(j => String(j.aims_and_scope_fa || "").trim()).length;
+  const withLinks = journals.filter(j => linkType(j) === "direct").length;
+  els.statTotal.textContent = faNumber.format(journals.length);
   els.statSubjects.textContent = faNumber.format(subjects);
-  els.statAims.textContent = `${faNumber.format(withAims)} (${faNumber.format(withAims / state.journals.length * 100)}٪)`;
-  els.statDecision.textContent = `${faNumber.format(withDecision)} (${faNumber.format(withDecision / state.journals.length * 100)}٪)`;
+  els.statAims.textContent = faNumber.format(withAims);
+  els.statLinks.textContent = faNumber.format(withLinks);
 }
 
 function acceptanceMatches(journal) {
@@ -245,6 +261,7 @@ function applyFilters({ resetPage = true } = {}) {
     if (state.subject && journal.subject_fa !== state.subject) return false;
     if (state.quartile && quartileLabel(journal.index_quartile) !== state.quartile) return false;
     if (state.publisher && journal.publisher !== state.publisher) return false;
+    if (state.linkStatus && linkType(journal) !== state.linkStatus) return false;
     if (state.availability === "aims" && !String(journal.aims_and_scope_fa || "").trim()) return false;
     if (state.availability === "acceptance" && !hasNumber(journal.acceptance_rate_percent)) return false;
     if (state.availability === "decision" && !hasNumber(journal.submission_to_first_decision_days)) return false;
@@ -299,13 +316,13 @@ function cardTemplate(journal) {
       </div>
       <div class="journal-card__actions">
         <button class="detail-button" type="button" data-detail="${journal.record_id}">جزئیات کامل</button>
-        <a class="external-button" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(link.label)}" title="${escapeHtml(link.label)}">↗</a>
+        <a class="external-button" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(link.label)}: ${escapeHtml(journal.journal_title)}" title="${escapeHtml(link.label)}">${link.type === "direct" ? "وب‌سایت ↗" : "جست‌وجو ↗"}</a>
       </div>
     </article>`;
 }
 
 function hasActiveFilters() {
-  return Boolean(state.query || state.subject || state.quartile || state.publisher || state.availability || state.acceptanceBand || state.sort !== "source" || state.favoritesOnly);
+  return Boolean(state.query || state.subject || state.quartile || state.publisher || state.availability || state.acceptanceBand || state.linkStatus || state.sort !== "source" || state.favoritesOnly);
 }
 
 function render() {
@@ -354,6 +371,7 @@ function clearFilters() {
   state.publisher = "";
   state.availability = "";
   state.acceptanceBand = "";
+  state.linkStatus = "";
   state.sort = "source";
   state.favoritesOnly = false;
   els.search.value = "";
@@ -362,6 +380,7 @@ function clearFilters() {
   els.publisher.value = "";
   els.availability.value = "";
   els.acceptanceBand.value = "";
+  els.linkStatus.value = "";
   els.sort.value = "source";
   applyFilters();
   els.search.focus();
@@ -419,7 +438,7 @@ function showJournal(id, { updateHash = true } = {}) {
         <button type="button" data-dialog-favorite="${journal.record_id}">${isFavorite ? "★ حذف از علاقه‌مندی" : "☆ علاقه‌مندی"}</button>
         <button type="button" data-dialog-compare="${journal.record_id}">${isCompared ? "✓ در مقایسه" : "+ افزودن به مقایسه"}</button>
         <button type="button" data-copy-link="${journal.record_id}">کپی لینک این مجله</button>
-        <small class="link-note">${link.type === "direct" ? "این URL به‌صورت مستقیم برای این نشریه شناسایی شده است." : "برای جلوگیری از ثبت URL حدسی، این لینک جست‌وجوی دقیق عنوان در سایت ناشر/وب است."}</small>
+        <small class="link-note">${link.type === "direct" ? "صفحهٔ مستقیم نشریه؛ هنگام ارسال مقاله، نشانی و اطلاعات جاری را در سایت ناشر بررسی کنید." : "صفحهٔ رسمی این ردیف تأیید نشده است؛ این لینک، جست‌وجوی عنوان در سایت ناشر یا وب است."}</small>
       </div>
     </header>
 
@@ -541,33 +560,47 @@ async function decodeGzipBase64(parts) {
   return JSON.parse(json);
 }
 
-async function fetchTextParts(prefix, count) {
-  return Promise.all(Array.from({ length: count }, (_, i) =>
-    fetch(`./data/${prefix}-${String(i).padStart(2,"0")}.txt`, { cache: "force-cache" }).then(response => {
+async function fetchTextParts(prefix, count, version) {
+  const chunks = new Array(count);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(count, 6) }, async () => {
+    while (next < count) {
+      const i = next++;
+      const response = await fetch(`./data/${prefix}-${String(i).padStart(2,"0")}.txt?v=${version}`, { cache: "force-cache" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response.text();
-    })
-  ));
+      chunks[i] = await response.text();
+    }
+  }));
+  return chunks;
 }
 
 async function loadPackedData() {
-  try {
-    const manifestResponse = await fetch("./data/full-manifest.json", { cache: "no-cache" });
-    if (manifestResponse.ok) {
-      const manifest = await manifestResponse.json();
-      if (manifest?.count > 0 && manifest?.compression === "gzip-base64") {
-        const parts = await fetchTextParts("full", manifest.count);
-        const journals = await decodeGzipBase64(parts);
-        if (journals.length !== manifest.records) throw new Error("Full dataset record count mismatch");
-        return journals;
-      }
-    }
-  } catch (error) {
-    console.warn("Full dataset unavailable; using fallback dataset.", error);
+  const manifestResponse = await fetch("./data/catalog-manifest.json", { cache: "no-cache" });
+  if (!manifestResponse.ok) throw new Error(`Catalogue manifest: HTTP ${manifestResponse.status}`);
+  const manifest = await manifestResponse.json();
+  if (manifest.format !== "gzip-base64" || manifest.prefix !== "catalog" ||
+      !Number.isInteger(manifest.parts) || manifest.parts < 1 || manifest.parts > 100) {
+    throw new Error("Invalid catalogue manifest");
   }
+  const journals = await decodeGzipBase64(await fetchTextParts(manifest.prefix, manifest.parts, manifest.sha256.slice(0, 12)));
+  if (journals.length !== manifest.records || journals.filter(j => j.record_type === "journal").length !== manifest.journals) {
+    throw new Error("Incomplete catalogue");
+  }
+  return journals;
+}
 
-  const fallbackParts = await fetchTextParts("packed", FALLBACK_PACK_COUNT);
-  return decodeGzipBase64(fallbackParts);
+function exportCatalogue() {
+  const records = state.journals.map(({ _search, ...journal }) => {
+    if (journal.record_type !== "journal") return journal;
+    const link = externalLinkFor(journal);
+    return { ...journal, journal_url: link.url, journal_url_type: link.type };
+  });
+  const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json;charset=utf-8" });
+  const anchor = document.createElement("a");
+  anchor.href = URL.createObjectURL(blob);
+  anchor.download = "jorfinder-complete-catalog.json";
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(anchor.href), 30000);
 }
 
 let searchTimer;
@@ -580,6 +613,8 @@ els.quartile.addEventListener("change", e => { state.quartile = e.target.value; 
 els.publisher.addEventListener("change", e => { state.publisher = e.target.value; applyFilters(); });
 els.availability.addEventListener("change", e => { state.availability = e.target.value; applyFilters(); });
 els.acceptanceBand.addEventListener("change", e => { state.acceptanceBand = e.target.value; applyFilters(); });
+els.linkStatus.addEventListener("change", e => { state.linkStatus = e.target.value; applyFilters(); });
+els.export.addEventListener("click", exportCatalogue);
 els.sort.addEventListener("change", e => { state.sort = e.target.value; applyFilters(); });
 els.clear.addEventListener("click", clearFilters);
 document.querySelector("[data-clear]").addEventListener("click", clearFilters);

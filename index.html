@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="مجله‌یاب؛ جست‌وجو، مقایسه و بررسی جزئیات ۹۷۱ نشریه علمی با اطلاعات کامل منبع." />
+  <meta name="description" content="جست‌وجو و مقایسهٔ ۹۷۰ نشریهٔ علمی با متن کامل اطلاعات منبع، نمایه، نرخ پذیرش و پیوندهای مشخص‌شده." />
   <meta name="theme-color" content="#071f2a" />
   <title>مجله‌یاب — جست‌وجو و مقایسه نشریات علمی</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23071f2a'/%3E%3Cpath d='M17 16h30v8H26v8h17v8H26v9h21v8H17z' fill='%2359e3c4'/%3E%3C/svg%3E" />
@@ -36,15 +36,16 @@
     <section class="hero">
       <div class="shell hero__grid">
         <div class="hero__copy">
-          <p class="eyebrow">۹۷۱ نشریه · ۱۶ حوزه علمی · داده کامل منبع</p>
-          <h1>مجله مناسب مقاله‌ات را با داده، نه حدس، پیدا کن.</h1>
-          <p>عنوان، ناشر، حوزه، متن اهداف و چشم‌انداز و توضیحات پوشش را هم‌زمان جست‌وجو کن؛ بعد مجلات را کنار هم مقایسه کن.</p>
+          <p class="eyebrow">فهرست پژوهشی / ۱۶ حوزهٔ علمی</p>
+          <h1>برای مقاله‌ات، نشریه را دقیق‌تر انتخاب کن.</h1>
+          <p>متن کامل اهداف و حوزهٔ پوشش، داده‌های داوری و پیوند هر نشریه را در یک فهرست جست‌وجو کن؛ موارد دلخواه را کنار هم ببین.</p>
+          <p class="hero__source">۹۷۰ نشریه از فایل مرجع ۴۹۷ صفحه‌ای · یک ردیفِ یادداشت منبع جداگانه نگهداری شده است.</p>
         </div>
         <div class="hero__stats" aria-label="آمار فهرست">
-          <article><strong id="stat-total">۹۷۱</strong><span>نشریه</span></article>
+          <article><strong id="stat-total">۹۷۰</strong><span>نشریه</span></article>
           <article><strong id="stat-subjects">۱۶</strong><span>حوزه علمی</span></article>
-          <article><strong id="stat-aims">—</strong><span>دارای اهداف کامل</span></article>
-          <article><strong id="stat-decision">—</strong><span>دارای زمان تصمیم اول</span></article>
+          <article><strong id="stat-aims">—</strong><span>دارای متن اهداف</span></article>
+          <article><strong id="stat-links">—</strong><span>پیوند مستقیم شناسایی‌شده</span></article>
         </div>
       </div>
     </section>
@@ -71,8 +72,10 @@
           <label><span>ناشر</span><select id="publisher-filter"><option value="">همه ناشران</option></select></label>
           <label><span>داده موجود</span><select id="data-filter"><option value="">بدون محدودیت</option><option value="aims">اهداف و چشم‌انداز</option><option value="acceptance">نرخ پذیرش</option><option value="decision">زمان تصمیم اول</option><option value="iranian">اطلاعات نویسندگان ایرانی</option></select></label>
           <label><span>بازه نرخ پذیرش</span><select id="acceptance-filter"><option value="">همه</option><option value="lt20">کمتر از ۲۰٪</option><option value="20to40">۲۰ تا ۴۰٪</option><option value="gt40">بیشتر از ۴۰٪</option></select></label>
+          <label><span>نوع پیوند</span><select id="link-filter"><option value="">همهٔ نشریات</option><option value="direct">صفحهٔ مستقیم شناسایی‌شده</option><option value="search">جست‌وجوی عنوان</option></select></label>
           <label><span>مرتب‌سازی</span><select id="sort-filter"><option value="source">ترتیب منبع</option><option value="title">عنوان مجله</option><option value="acceptance">کمترین نرخ پذیرش</option><option value="decision">سریع‌ترین تصمیم اول</option><option value="final">سریع‌ترین پذیرش نهایی</option><option value="iranian">بیشترین نویسنده ایرانی</option></select></label>
         </div>
+        <div class="catalog-help"><span>مقادیر «—» در منبع عدد مشخصی ندارند. متن خام همهٔ ردیف‌ها در «جزئیات کامل» آمده است.</span><button id="export-data" class="link-button" type="button">دریافت دادهٔ کامل JSON ↓</button></div>
       </div>
 
       <div class="results-toolbar">
@@ -137,8 +140,8 @@
 
   <footer>
     <div class="shell footer__inner">
-      <p>داده‌های محتوایی از فایل مرجع ۴۹۷ صفحه‌ای استخراج شده‌اند. لینک‌های «مستقیم» به صفحه شناخته‌شده مجله می‌روند؛ سایر لینک‌ها جست‌وجوی دقیق در وب/سایت ناشر هستند تا از ثبت URL حدسی به‌عنوان لینک رسمی جلوگیری شود.</p>
-      <span>JorFinder · نسخه ۲</span>
+      <p>اطلاعات نشریات از فایل مرجع استخراج شده‌اند و ممکن است با وضعیت کنونی ناشر فرق داشته باشند. «وب‌سایت» صفحهٔ مستقیم شناسایی‌شده و «جست‌وجو» راهی برای یافتن صفحهٔ نشریه است؛ پیوندهای جست‌وجو تأیید رسمی نشده‌اند.</p>
+      <span>JorFinder · فهرست کامل</span>
     </div>
   </footer>
 

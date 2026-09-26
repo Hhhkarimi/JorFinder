@@ -22,6 +22,12 @@ def build(source: Path) -> None:
     records = json.loads(source.read_text(encoding="utf-8"))
     if not isinstance(records, list) or not records:
         raise ValueError("Expected a nonempty array of source records")
+    # The extracted PDF has a recurring reversed-letter typo in Persian text.
+    records = [
+        {key: value.replace("اعالم", "اعلام") if isinstance(value, str) else value
+         for key, value in record.items()}
+        for record in records
+    ]
     ids = [record["record_id"] for record in records]
     if len(ids) != len(set(ids)):
         raise ValueError("Duplicate record IDs")

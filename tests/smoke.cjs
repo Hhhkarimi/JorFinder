@@ -80,10 +80,14 @@ waitForCatalogue().then(async () => {
   assert.equal(element('#recommend-submit').disabled, false);
   assert.equal(manifest.records, 971);
   assert.equal(manifest.journals, 970);
+  assert.equal(vm.runInContext('state.journals.some(j => Object.values(j).some(v => typeof v === "string" && v.includes("اعالم")))', sandbox), false);
   assert.match(element('#results').innerHTML, /Teaching and Teacher Education/);
   assert.equal(element('#export-data').disabled, false);
   vm.runInContext('showJournal(1)', sandbox);
   assert.match(element('#dialog-content').innerHTML, /یک مجله بین المللی/);
+  vm.runInContext('closeJournal()', sandbox);
+  vm.runInContext('showJournal(2)', sandbox);
+  assert.match(element('#dialog-content').innerHTML, /رسما اعلام نشده/);
   vm.runInContext('closeJournal()', sandbox);
   element('#workspace-tabs').listeners.click({ target: element('#tab-recommender') });
   assert.equal(element('#catalog').hidden, true);

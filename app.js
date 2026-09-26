@@ -74,6 +74,11 @@ const els = {
   statSubjects: document.querySelector("#stat-subjects"),
   statAims: document.querySelector("#stat-aims"),
   statLinks: document.querySelector("#stat-links"),
+  recommendForm: document.querySelector("#recommend-form"),
+  recommendSubmit: document.querySelector("#recommend-submit"),
+  recommendStatus: document.querySelector("#recommend-status"),
+  recommendResults: document.querySelector("#recommend-results"),
+  recommendList: document.querySelector("#recommend-list"),
 };
 
 const faNumber = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 1 });
@@ -336,6 +341,27 @@ function cardTemplate(journal) {
         <a class="external-button" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(link.label)}: ${escapeHtml(journal.journal_title)}" title="${escapeHtml(link.label)}">${link.type === "direct" ? "وب‌سایت ↗" : "جست‌وجو ↗"}</a>
       </div>
     </article>`;
+}
+
+function recommendationTemplate(result, rank) {
+  const { journal, score, evidence, matchingTerms } = result;
+  const link = externalLinkFor(journal);
+  return `
+    <li class="recommendation">
+      <span class="recommendation__rank">${faNumber.format(rank + 1).padStart(2, "۰")}</span>
+      <div>
+        <span class="badge">${escapeHtml(journal.subject_fa)}</span>
+        <h4 class="recommendation__title" dir="auto">${escapeHtml(journal.journal_title)}</h4>
+        <p class="recommendation__publisher">${escapeHtml(journal.publisher || "ناشر اعلام نشده")}</p>
+        <div class="recommendation__evidence" aria-label="مبنای پیشنهاد">${evidence.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+        ${matchingTerms.length ? `<p class="recommendation__terms">واژه‌های مشترک: ${escapeHtml(matchingTerms.join("، "))}</p>` : ""}
+        <div class="recommendation__actions">
+          <button type="button" data-recommend-detail="${journal.record_id}">مشاهدهٔ اطلاعات کامل</button>
+          <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} ↗</a>
+        </div>
+      </div>
+      <div class="recommendation__score" aria-label="${faNumber.format(score)} درصد تطابق محتوایی"><strong>${faNumber.format(score)}٪</strong><span>تطابق محتوایی</span></div>
+    </li>`;
 }
 
 function hasActiveFilters() {
@@ -629,8 +655,38 @@ function exportCatalogue() {
   setTimeout(() => URL.revokeObjectURL(anchor.href), 30000);
 }
 
+let recommendationEngine = null;
 let searchTimer;
 let lastJournalTrigger = null;
+els.recommendForm.addEventListener("submit", event => {
+  event.preventDefault();
+  if (!recommendationEngine) return;
+  const title = document.querySelector("#paper-title").value.trim();
+  const abstract = document.querySelector("#paper-abstract").value.trim();
+  const keywords = document.querySelector("#paper-keywords").value.trim();
+  if (title.length < 5 || abstract.length < 30 || keywords.length < 2) {
+    els.recommendStatus.textContent = "عنوان، چکیده و کلمات کلیدی را کامل‌تر وارد کنید.";
+    return;
+  }
+  const matches = recommendationEngine.recommend({ title, abstract, keywords }, 10);
+  els.recommendResults.hidden = false;
+  els.recommendList.innerHTML = matches.length
+    ? matches.map(recommendationTemplate).join("")
+    : '<li class="state-card">برای این متن، تطابق محتوایی کافی در فهرست پیدا نشد. کلیدواژه‌های دقیق‌تری امتحان کنید.</li>';
+  els.recommendStatus.textContent = matches.length
+    ? `${faNumber.format(matches.length)} نشریهٔ متمایز بر اساس میزان تطابق مرتب شد.`
+    : "پیشنهاد مناسبی در حوزه‌های این فهرست پیدا نشد.";
+});
+els.recommendForm.addEventListener("input", () => {
+  els.recommendResults.hidden = true;
+  if (recommendationEngine) els.recommendStatus.textContent = "برای دیدن پیشنهادهای به‌روز، دوباره دکمه را بزنید.";
+});
+els.recommendList.addEventListener("click", event => {
+  const trigger = event.target.closest("[data-recommend-detail]");
+  if (!trigger) return;
+  lastJournalTrigger = trigger;
+  showJournal(trigger.dataset.recommendDetail);
+});
 els.search.addEventListener("input", event => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => { state.query = event.target.value; applyFilters(); }, 140);
@@ -695,6 +751,17 @@ loadPackedData()
     populateFilters();
     renderHeroStats();
     applyFilters();
+    els.recommendStatus.textContent = "در حال آماده‌سازی پیشنهاددهنده…";
+    setTimeout(() => {
+      try {
+        recommendationEngine = window.JournalRecommender.createRecommender(state.journals);
+        els.recommendSubmit.disabled = false;
+        els.recommendStatus.textContent = "آماده است؛ اطلاعات مقاله‌تان را وارد کنید.";
+      } catch (error) {
+        console.error(error);
+        els.recommendStatus.textContent = "پیشنهاددهنده بارگذاری نشد. صفحه را دوباره باز کنید.";
+      }
+    }, 0);
     const match = location.hash.match(/^#journal-(\d+)$/);
     if (match) showJournal(match[1], { updateHash:false });
   })
@@ -703,6 +770,7 @@ loadPackedData()
     els.loading.hidden = true;
     els.error.hidden = false;
     els.heading.textContent = "خطا در بارگذاری فهرست";
+    els.recommendStatus.textContent = "برای پیشنهاد نشریه، ابتدا باید فهرست بارگذاری شود.";
     if (!("DecompressionStream" in window)) {
       els.error.querySelector("p").textContent = "برای بازکردن داده‌های فهرست، مرورگر خود را به‌روز کنید و دوباره تلاش کنید.";
     }

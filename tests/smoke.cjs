@@ -56,6 +56,8 @@ const sandbox = {
   },
 };
 vm.createContext(sandbox);
+element('#recommend-submit').disabled = true;
+vm.runInContext(fs.readFileSync(path.join(root, 'recommender.js'), 'utf8'), sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'app.js'), 'utf8'), sandbox);
 
 async function waitForCatalogue() {
@@ -66,7 +68,11 @@ async function waitForCatalogue() {
   throw Error('The complete catalogue did not render');
 }
 
-waitForCatalogue().then(() => {
+waitForCatalogue().then(async () => {
+  for (let i = 0; element('#recommend-submit').disabled && i < 100; i++) {
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  assert.equal(element('#recommend-submit').disabled, false);
   assert.equal(manifest.records, 971);
   assert.equal(manifest.journals, 970);
   assert.match(element('#results').innerHTML, /Teaching and Teacher Education/);
@@ -76,7 +82,14 @@ waitForCatalogue().then(() => {
   element('#link-filter').value = 'direct';
   element('#link-filter').listeners.change({ target: element('#link-filter') });
   assert.match(element('#results-heading').textContent, /۲۷ نشریه/);
+  element('#paper-title').value = 'هوش مصنوعی در آموزش معلمان';
+  element('#paper-abstract').value = 'پژوهش دربارهٔ کاربرد فناوری آموزشی و یادگیری ماشین برای تربیت معلمان و بهبود یادگیری دانشجویان است.';
+  element('#paper-keywords').value = 'آموزش، فناوری، هوش مصنوعی';
+  element('#recommend-form').listeners.submit({ preventDefault() {} });
+  assert.equal(element('#recommend-results').hidden, false);
+  assert.match(element('#recommend-list').innerHTML, /تطابق محتوایی/);
+  assert.match(element('#recommend-status').textContent, /نشریهٔ متمایز/);
   vm.runInContext('toggleFavorite(1)', sandbox);
   assert.ok(events.hashchange);
-  console.log('Catalogue, university logo, source credits, font, checksum, filters and blocked storage: OK');
+  console.log('Catalogue, recommendations, university logo, source credits, font, checksum and blocked storage: OK');
 }).catch(error => { console.error(error); process.exitCode = 1; });

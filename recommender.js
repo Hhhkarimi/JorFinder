@@ -110,18 +110,18 @@
           evidence.set(field, (evidence.get(field) || 0) + contribution);
           if (!term.startsWith("concept:") && matchingTerms.length < 5) matchingTerms.push(term);
         }
-        const score = Math.min(99, Math.round(matched / total * 100));
-        if (matchedCount < 2 || score < 10) continue;
+        const rankScore = matched / total;
+        if (matchedCount < 2 || rankScore < .1) continue;
         const result = {
-          journal: doc.journal, score,
+          journal: doc.journal, rankScore,
           evidence: [...evidence].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([field]) => fieldNames[field]),
           matchingTerms,
         };
         const key = normalized(doc.journal.journal_title);
-        if (!unique.has(key) || score > unique.get(key).score) unique.set(key, result);
+        if (!unique.has(key) || rankScore > unique.get(key).rankScore) unique.set(key, result);
       }
       return [...unique.values()]
-        .sort((a, b) => b.score - a.score || a.journal.record_id - b.journal.record_id)
+        .sort((a, b) => b.rankScore - a.rankScore || a.journal.record_id - b.journal.record_id)
         .slice(0, Math.max(1, Math.min(20, limit)));
     }
     return { recommend };

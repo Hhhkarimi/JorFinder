@@ -344,7 +344,7 @@ function cardTemplate(journal) {
 }
 
 function recommendationTemplate(result, rank) {
-  const { journal, score, evidence, matchingTerms } = result;
+  const { journal, evidence, matchingTerms } = result;
   const link = externalLinkFor(journal);
   return `
     <li class="recommendation">
@@ -360,7 +360,6 @@ function recommendationTemplate(result, rank) {
           <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} ↗</a>
         </div>
       </div>
-      <div class="recommendation__score" aria-label="${faNumber.format(score)} درصد تطابق محتوایی"><strong>${faNumber.format(score)}٪</strong><span>تطابق محتوایی</span></div>
     </li>`;
 }
 
@@ -650,7 +649,7 @@ function exportCatalogue() {
   const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json;charset=utf-8" });
   const anchor = document.createElement("a");
   anchor.href = URL.createObjectURL(blob);
-  anchor.download = "jorfinder-complete-catalog.json";
+  anchor.download = "humanities-journals-catalog.json";
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(anchor.href), 30000);
 }

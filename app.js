@@ -1,6 +1,23 @@
 const PAGE_SIZE = 18;
 const MAX_COMPARE = 4;
 
+function savedValue(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+function saveValue(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* Storage may be disabled. */ }
+}
+
+function savedFavorites() {
+  try {
+    const ids = JSON.parse(savedValue("jorfinder:favorites") || "[]");
+    return new Set(Array.isArray(ids) ? ids.filter(id => Number.isSafeInteger(id) && id > 0) : []);
+  } catch { return new Set(); }
+}
+
+const savedView = savedValue("jorfinder:view");
+
 const state = {
   journals: [],
   filtered: [],
@@ -13,9 +30,9 @@ const state = {
   linkStatus: "",
   sort: "source",
   page: 1,
-  view: localStorage.getItem("jorfinder:view") || "grid",
+  view: savedView === "list" ? "list" : "grid",
   favoritesOnly: false,
-  favorites: new Set(JSON.parse(localStorage.getItem("jorfinder:favorites") || "[]")),
+  favorites: savedFavorites(),
   compare: new Set(),
 };
 
@@ -361,7 +378,7 @@ function renderPersistentUi() {
 }
 
 function saveFavorites() {
-  localStorage.setItem("jorfinder:favorites", JSON.stringify([...state.favorites]));
+  saveValue("jorfinder:favorites", JSON.stringify([...state.favorites]));
 }
 
 function clearFilters() {
@@ -512,6 +529,7 @@ function switchTab(name) {
 function closeJournal() {
   if (els.dialog.open) els.dialog.close();
   if (/^#journal-\d+$/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search);
+  if (lastJournalTrigger?.isConnected) lastJournalTrigger.focus();
 }
 
 function compareCell(value, extraClass = "") {
@@ -542,7 +560,7 @@ function showCompare() {
 
 function updateView(view) {
   state.view = view;
-  localStorage.setItem("jorfinder:view", view);
+  saveValue("jorfinder:view", view);
   document.querySelectorAll("[data-view]").forEach(button => {
     const active = button.dataset.view === view;
     button.classList.toggle("is-active", active);
@@ -551,12 +569,18 @@ function updateView(view) {
   render();
 }
 
-async function decodeGzipBase64(parts) {
+async function decodeGzipBase64(parts, expectedSha) {
   const binary = atob(parts.join(""));
   const compressed = Uint8Array.from(binary, char => char.charCodeAt(0));
   if (!("DecompressionStream" in window)) throw new Error("Browser lacks DecompressionStream");
   const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
   const json = await new Response(stream).text();
+  if (globalThis.crypto?.subtle) {
+    const bytes = new TextEncoder().encode(json);
+    const hash = await crypto.subtle.digest("SHA-256", bytes);
+    const actual = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2,"0")).join("");
+    if (actual !== expectedSha) throw new Error("Catalogue checksum mismatch");
+  }
   return JSON.parse(json);
 }
 
@@ -579,10 +603,11 @@ async function loadPackedData() {
   if (!manifestResponse.ok) throw new Error(`Catalogue manifest: HTTP ${manifestResponse.status}`);
   const manifest = await manifestResponse.json();
   if (manifest.format !== "gzip-base64" || manifest.prefix !== "catalog" ||
-      !Number.isInteger(manifest.parts) || manifest.parts < 1 || manifest.parts > 100) {
+      !Number.isInteger(manifest.parts) || manifest.parts < 1 || manifest.parts > 100 ||
+      !/^[a-f0-9]{64}$/.test(manifest.sha256)) {
     throw new Error("Invalid catalogue manifest");
   }
-  const journals = await decodeGzipBase64(await fetchTextParts(manifest.prefix, manifest.parts, manifest.sha256.slice(0, 12)));
+  const journals = await decodeGzipBase64(await fetchTextParts(manifest.prefix, manifest.parts, manifest.sha256.slice(0, 12)), manifest.sha256);
   if (journals.length !== manifest.records || journals.filter(j => j.record_type === "journal").length !== manifest.journals) {
     throw new Error("Incomplete catalogue");
   }
@@ -590,6 +615,7 @@ async function loadPackedData() {
 }
 
 function exportCatalogue() {
+  if (!state.journals.length) return;
   const records = state.journals.map(({ _search, ...journal }) => {
     if (journal.record_type !== "journal") return journal;
     const link = externalLinkFor(journal);
@@ -604,6 +630,7 @@ function exportCatalogue() {
 }
 
 let searchTimer;
+let lastJournalTrigger = null;
 els.search.addEventListener("input", event => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => { state.query = event.target.value; applyFilters(); }, 140);
@@ -627,13 +654,19 @@ els.results.addEventListener("click", event => {
   const compare = event.target.closest("[data-compare]");
   if (compare) return toggleCompare(compare.dataset.compare);
   const detail = event.target.closest("[data-detail]");
-  if (detail) return showJournal(detail.dataset.detail);
+  if (detail) { lastJournalTrigger = detail; return showJournal(detail.dataset.detail); }
 });
 
 els.next.addEventListener("click", () => { state.page += 1; render(); document.querySelector("#results-heading").scrollIntoView({ behavior:"smooth", block:"start" }); });
 els.prev.addEventListener("click", () => { state.page -= 1; render(); document.querySelector("#results-heading").scrollIntoView({ behavior:"smooth", block:"start" }); });
 els.dialogClose.addEventListener("click", closeJournal);
 els.dialog.addEventListener("click", event => { if (event.target === els.dialog) closeJournal(); });
+els.dialog.addEventListener("cancel", event => { event.preventDefault(); closeJournal(); });
+window.addEventListener("hashchange", () => {
+  const match = location.hash.match(/^#journal-(\d+)$/);
+  if (match && state.journals.length) showJournal(match[1], { updateHash:false });
+  else if (els.dialog.open) closeJournal();
+});
 els.compareClose.addEventListener("click", () => els.compareDialog.close());
 els.compareDialog.addEventListener("click", event => { if (event.target === els.compareDialog) els.compareDialog.close(); });
 els.compareShow.addEventListener("click", showCompare);
@@ -656,6 +689,9 @@ renderPersistentUi();
 loadPackedData()
   .then(journals => {
     state.journals = journals.map(journal => ({ ...journal, _search: buildSearchText(journal) }));
+    const knownIds = new Set(state.journals.filter(j => j.record_type === "journal").map(j => j.record_id));
+    state.favorites = new Set([...state.favorites].filter(id => knownIds.has(id)));
+    els.export.disabled = false;
     populateFilters();
     renderHeroStats();
     applyFilters();
@@ -667,4 +703,7 @@ loadPackedData()
     els.loading.hidden = true;
     els.error.hidden = false;
     els.heading.textContent = "خطا در بارگذاری فهرست";
+    if (!("DecompressionStream" in window)) {
+      els.error.querySelector("p").textContent = "برای بازکردن داده‌های فهرست، مرورگر خود را به‌روز کنید و دوباره تلاش کنید.";
+    }
   });

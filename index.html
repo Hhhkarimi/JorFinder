@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#071f2a" />
   <title>مجله‌یاب — جست‌وجو و مقایسه نشریات علمی</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23071f2a'/%3E%3Cpath d='M17 16h30v8H26v8h17v8H26v9h21v8H17z' fill='%2359e3c4'/%3E%3C/svg%3E" />
+  <link rel="preload" href="./assets/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -22,6 +23,7 @@
         </span>
       </a>
       <nav class="top-actions" aria-label="ابزارها">
+        <a class="ghost-button about-link" href="#about">دربارهٔ ما</a>
         <button id="favorites-only" class="ghost-button" type="button" aria-pressed="false">
           <span aria-hidden="true">☆</span> علاقه‌مندی‌ها <b id="favorite-count">۰</b>
         </button>
@@ -75,7 +77,7 @@
           <label><span>نوع پیوند</span><select id="link-filter"><option value="">همهٔ نشریات</option><option value="direct">صفحهٔ مستقیم شناسایی‌شده</option><option value="search">جست‌وجوی عنوان</option></select></label>
           <label><span>مرتب‌سازی</span><select id="sort-filter"><option value="source">ترتیب منبع</option><option value="title">عنوان مجله</option><option value="acceptance">کمترین نرخ پذیرش</option><option value="decision">سریع‌ترین تصمیم اول</option><option value="final">سریع‌ترین پذیرش نهایی</option><option value="iranian">بیشترین نویسنده ایرانی</option></select></label>
         </div>
-        <div class="catalog-help"><span>مقادیر «—» در منبع عدد مشخصی ندارند. متن خام همهٔ ردیف‌ها در «جزئیات کامل» آمده است.</span><button id="export-data" class="link-button" type="button">دریافت دادهٔ کامل JSON ↓</button></div>
+        <div class="catalog-help"><span>مقادیر «—» در منبع عدد مشخصی ندارند. متن خام همهٔ ردیف‌ها در «جزئیات کامل» آمده است.</span><button id="export-data" class="link-button" type="button" disabled>دریافت دادهٔ کامل JSON ↓</button></div>
       </div>
 
       <div class="results-toolbar">
@@ -115,6 +117,24 @@
         <button id="prev-page" type="button">صفحه قبل</button>
       </nav>
     </section>
+
+    <section id="about" class="shell about-section" aria-labelledby="about-title">
+      <div class="about-section__intro">
+        <p class="section-kicker">دربارهٔ ما / اعتبار منبع</p>
+        <h2 id="about-title">پشت این فهرست چه کسانی هستند؟</h2>
+        <p>مجله‌یاب، اطلاعات فهرست پژوهشی زیر را برای جست‌وجو و مقایسه در دسترس قرار می‌دهد. داده‌ها از نسخهٔ در اختیار ما استخراج شده‌اند و وضعیت روزِ نمایه، پذیرش یا زمان داوری نشریات را تضمین نمی‌کنند.</p>
+      </div>
+      <div class="about-section__source">
+        <p class="about-section__institution">دانشگاه شهید چمران اهواز</p>
+        <h3>فهرست طبقه‌بندی‌شدهٔ مجلات حوزهٔ علوم انسانی برگرفته از پایگاه استنادی <span dir="ltr">Web of Science</span></h3>
+        <dl>
+          <div><dt>گردآورنده</dt><dd>آتوسا کوچکی</dd></div>
+          <div><dt>تنظیم‌کننده</dt><dd>میترا فلاحی</dd></div>
+        </dl>
+        <p class="about-section__note">این مشخصات از صفحهٔ عنوان فایل مرجع نقل شده‌اند. اطلاعات هر نشریه را پیش از تصمیم برای ارسال مقاله در سایت همان نشریه بررسی کنید.</p>
+      </div>
+      <p class="about-section__credit">تهیه‌کنندهٔ وب‌اپ: <a href="https://www.linkedin.com/in/hossein-karimi-8a452153/" target="_blank" rel="noopener noreferrer">حسین کریمی ↗</a></p>
+    </section>
   </main>
 
   <div id="compare-tray" class="compare-tray" hidden>
@@ -141,7 +161,7 @@
   <footer>
     <div class="shell footer__inner">
       <p>اطلاعات نشریات از فایل مرجع استخراج شده‌اند و ممکن است با وضعیت کنونی ناشر فرق داشته باشند. «وب‌سایت» صفحهٔ مستقیم شناسایی‌شده و «جست‌وجو» راهی برای یافتن صفحهٔ نشریه است؛ پیوندهای جست‌وجو تأیید رسمی نشده‌اند.</p>
-      <span>JorFinder · فهرست کامل</span>
+      <span>تهیه‌کنندهٔ وب‌اپ: <a href="https://www.linkedin.com/in/hossein-karimi-8a452153/" target="_blank" rel="noopener noreferrer">حسین کریمی ↗</a></span>
     </div>
   </footer>
 

@@ -25,11 +25,12 @@ assert.match(html, /https:\/\/www\.linkedin\.com\/in\/hossein-karimi-8a452153\//
 const elements = new Map();
 function element(key) {
   if (!elements.has(key)) elements.set(key, {
-    value: '', hidden: false, disabled: false, innerHTML: '', textContent: '',
-    dataset: {}, isConnected: true, listeners: {}, open: false,
+    id: key.startsWith('#') ? key.slice(1) : '', value: '', hidden: false, disabled: false, innerHTML: '', textContent: '',
+    dataset: {}, isConnected: true, listeners: {}, open: false, attributes: {},
     classList: { toggle() {}, add() {}, remove() {} },
     addEventListener(name, fn) { this.listeners[name] = fn; },
-    setAttribute() {}, append() {}, add() {}, focus() {}, scrollIntoView() {},
+    setAttribute(name, value) { this.attributes[name] = value; }, removeAttribute(name) { delete this.attributes[name]; }, append() {}, add() {}, focus() {}, scrollIntoView() {},
+    closest() { return this; },
     querySelector() { return { addEventListener() {} }; }, querySelectorAll() { return []; },
     showModal() { this.open = true; }, close() { this.open = false; },
   });
@@ -37,12 +38,16 @@ function element(key) {
 }
 
 const events = {};
+element('#tab-catalog').dataset.workspace = 'catalog';
+element('#tab-recommender').dataset.workspace = 'recommender';
+element('#workspace-tabs').querySelectorAll = () => [element('#tab-catalog'), element('#tab-recommender')];
+const location = { hash: '', pathname: '/', search: '' };
 const sandbox = {
   window: { DecompressionStream, addEventListener(name, fn) { events[name] = fn; } },
   document: { addEventListener() {}, querySelector: element, querySelectorAll: () => [], createElement: () => element('created') },
   Option: class {}, Intl, Blob, Response, DecompressionStream, Uint8Array, TextEncoder,
   atob, URL, crypto: webcrypto, console, setTimeout, clearTimeout,
-  history: { replaceState() {} }, location: { hash: '', pathname: '/', search: '' },
+  history: { replaceState(_state, _title, path) { location.hash = path.startsWith('#') ? path : ''; }, pushState(_state, _title, path) { location.hash = path; } }, location,
   // Simulates browsers where storage is blocked. The catalogue should still work.
   localStorage: { getItem() { throw Error('blocked'); }, setItem() { throw Error('blocked'); } },
   fetch: async url => {
@@ -79,17 +84,46 @@ waitForCatalogue().then(async () => {
   assert.equal(element('#export-data').disabled, false);
   vm.runInContext('showJournal(1)', sandbox);
   assert.match(element('#dialog-content').innerHTML, /یک مجله بین المللی/);
+  vm.runInContext('closeJournal()', sandbox);
+  element('#workspace-tabs').listeners.click({ target: element('#tab-recommender') });
+  assert.equal(element('#catalog').hidden, true);
+  assert.equal(element('#recommender').hidden, false);
+  assert.equal(element('#tab-recommender').attributes['aria-selected'], 'true');
+  assert.equal(location.hash, '#recommender');
+  vm.runInContext('showJournal(1)', sandbox);
+  assert.equal(location.hash, '#journal-1');
+  vm.runInContext('closeJournal()', sandbox);
+  assert.equal(location.hash, '#recommender');
+  element('#workspace-tabs').listeners.keydown({ target: element('#tab-recommender'), key: 'ArrowRight', preventDefault() {} });
+  assert.equal(element('#catalog').hidden, false);
+  assert.equal(element('#recommender').hidden, true);
+  element('#workspace-tabs').listeners.click({ target: element('#tab-recommender') });
+  location.hash = '#catalog';
+  events.hashchange();
+  assert.equal(element('#recommender').hidden, true);
+  location.hash = '#recommender';
+  events.hashchange();
+  assert.equal(element('#recommender').hidden, false);
   element('#link-filter').value = 'direct';
   element('#link-filter').listeners.change({ target: element('#link-filter') });
   assert.match(element('#results-heading').textContent, /۲۷ نشریه/);
   element('#paper-title').value = 'هوش مصنوعی در آموزش معلمان';
   element('#paper-abstract').value = 'پژوهش دربارهٔ کاربرد فناوری آموزشی و یادگیری ماشین برای تربیت معلمان و بهبود یادگیری دانشجویان است.';
+  element('#paper-keywords').value = '  ';
+  element('#recommend-form').listeners.submit({ preventDefault() {} });
+  assert.equal(element('#paper-keywords').attributes['aria-invalid'], 'true');
+  assert.equal(element('#paper-keywords-error').hidden, false);
   element('#paper-keywords').value = 'آموزش، فناوری، هوش مصنوعی';
+  element('#recommend-form').listeners.input({ target: element('#paper-keywords') });
+  assert.equal(element('#paper-keywords-error').hidden, true);
   element('#recommend-form').listeners.submit({ preventDefault() {} });
   assert.equal(element('#recommend-results').hidden, false);
   assert.match(element('#recommend-list').innerHTML, /مبنای پیشنهاد/);
   assert.doesNotMatch(element('#recommend-list').innerHTML, /درصد تطابق|تطابق محتوایی|٪/);
   assert.match(element('#recommend-status').textContent, /نشریهٔ متمایز/);
+  element('#favorites-only').listeners.click();
+  assert.equal(element('#catalog').hidden, false);
+  assert.equal(location.hash, '#catalog');
   vm.runInContext('toggleFavorite(1)', sandbox);
   assert.ok(events.hashchange);
   console.log('Catalogue, recommendations, university logo, source credits, font, checksum and blocked storage: OK');

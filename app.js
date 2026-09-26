@@ -37,6 +37,9 @@ const state = {
 };
 
 const els = {
+  workspaceTabs: document.querySelector("#workspace-tabs"),
+  catalog: document.querySelector("#catalog"),
+  recommender: document.querySelector("#recommender"),
   search: document.querySelector("#search"),
   subject: document.querySelector("#subject-filter"),
   quartile: document.querySelector("#quartile-filter"),
@@ -492,23 +495,23 @@ function showJournal(id, { updateHash = true } = {}) {
     </dl>
 
     <div class="tabs" role="tablist" aria-label="بخش‌های جزئیات">
-      <button class="tab-button is-active" type="button" role="tab" aria-selected="true" data-tab="overview">خلاصه</button>
-      <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="aims">حوزه و اهداف</button>
-      <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="raw">داده کامل</button>
-      <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="source">منبع و اصلاحات</button>
+      <button id="detail-tab-overview" class="tab-button is-active" type="button" role="tab" aria-controls="detail-panel-overview" aria-selected="true" tabindex="0" data-tab="overview">خلاصه</button>
+      <button id="detail-tab-aims" class="tab-button" type="button" role="tab" aria-controls="detail-panel-aims" aria-selected="false" tabindex="-1" data-tab="aims">حوزه و اهداف</button>
+      <button id="detail-tab-raw" class="tab-button" type="button" role="tab" aria-controls="detail-panel-raw" aria-selected="false" tabindex="-1" data-tab="raw">داده کامل</button>
+      <button id="detail-tab-source" class="tab-button" type="button" role="tab" aria-controls="detail-panel-source" aria-selected="false" tabindex="-1" data-tab="source">منبع و اصلاحات</button>
     </div>
 
-    <section class="tab-panel" data-panel="overview">
+    <section id="detail-panel-overview" class="tab-panel" role="tabpanel" aria-labelledby="detail-tab-overview" tabindex="0" data-panel="overview">
       <div class="detail-section"><h3>حوزه پوشش</h3><p>${escapeHtml(textOrDash(journal.coverage_scope_fa))}</p></div>
       <div class="detail-section"><h3>نمایه / رتبه</h3><p>${escapeHtml(quartileLabel(journal.index_quartile))}</p></div>
     </section>
 
-    <section class="tab-panel" data-panel="aims" hidden>
+    <section id="detail-panel-aims" class="tab-panel" role="tabpanel" aria-labelledby="detail-tab-aims" tabindex="0" data-panel="aims" hidden>
       <div class="detail-section"><h3>حوزه‌های پوشش</h3><p>${escapeHtml(textOrDash(journal.coverage_scope_fa))}</p></div>
       <div class="detail-section"><h3>اهداف و چشم‌انداز کامل</h3><p>${escapeHtml(journal.aims_and_scope_fa || "در فایل مرجع برای این رکورد متن اهداف و چشم‌انداز درج نشده است.")}</p></div>
     </section>
 
-    <section class="tab-panel" data-panel="raw" hidden>
+    <section id="detail-panel-raw" class="tab-panel" role="tabpanel" aria-labelledby="detail-tab-raw" tabindex="0" data-panel="raw" hidden>
       <div class="raw-grid">
         <div class="raw-item"><span>نرخ پذیرش — متن منبع</span><strong>${escapeHtml(textOrDash(journal.acceptance_rate_raw))}</strong></div>
         <div class="raw-item"><span>نرخ پذیرش — مقدار عددی</span><strong>${escapeHtml(num(journal.acceptance_rate_percent,"٪"))}</strong></div>
@@ -525,12 +528,22 @@ function showJournal(id, { updateHash = true } = {}) {
       </div>
     </section>
 
-    <section class="tab-panel" data-panel="source" hidden>
+    <section id="detail-panel-source" class="tab-panel" role="tabpanel" aria-labelledby="detail-tab-source" tabindex="0" data-panel="source" hidden>
       <div class="detail-section"><h3>اصلاحات ثبت‌شده در داده</h3><p>${escapeHtml(journal.data_corrections || "برای این رکورد اصلاح خاصی ثبت نشده است.")}</p></div>
       <div class="detail-section"><h3>ارجاع به فایل مرجع</h3><div class="source-box">ردیف منبع: <strong>${escapeHtml(textOrDash(journal.source_record_id))}</strong> · ${pages}<br>عنوان ثبت‌شده: <code>${escapeHtml(journal.journal_title)}</code></div></div>
     </section>`;
 
   els.dialogContent.querySelectorAll("[data-tab]").forEach(button => button.addEventListener("click", () => switchTab(button.dataset.tab)));
+  els.dialogContent.querySelector(".tabs").addEventListener("keydown", event => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...els.dialogContent.querySelectorAll("[data-tab]")];
+    const index = tabs.indexOf(event.target);
+    if (index < 0) return;
+    const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1
+      : (index + (event.key === "ArrowLeft" ? 1 : -1) + tabs.length) % tabs.length;
+    switchTab(tabs[next].dataset.tab, { focus:true });
+  });
   els.dialogContent.querySelector("[data-dialog-favorite]")?.addEventListener("click", () => { toggleFavorite(journal.record_id); showJournal(journal.record_id, { updateHash:false }); });
   els.dialogContent.querySelector("[data-dialog-compare]")?.addEventListener("click", () => { toggleCompare(journal.record_id); showJournal(journal.record_id, { updateHash:false }); });
   els.dialogContent.querySelector("[data-copy-link]")?.addEventListener("click", async (event) => {
@@ -539,21 +552,26 @@ function showJournal(id, { updateHash = true } = {}) {
   });
 
   if (!els.dialog.open) els.dialog.showModal();
-  if (updateHash) history.replaceState(null, "", `#journal-${journal.record_id}`);
+  if (updateHash) {
+    if (!/^#journal-\d+$/.test(location.hash)) lastNonJournalHash = location.hash || `#${els.recommender.hidden ? "catalog" : "recommender"}`;
+    history.replaceState(null, "", `#journal-${journal.record_id}`);
+  }
 }
 
-function switchTab(name) {
+function switchTab(name, { focus = false } = {}) {
   els.dialogContent.querySelectorAll("[data-tab]").forEach(button => {
     const active = button.dataset.tab === name;
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-selected", String(active));
+    button.setAttribute("tabindex", active ? "0" : "-1");
+    if (active && focus) button.focus();
   });
   els.dialogContent.querySelectorAll("[data-panel]").forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
 }
 
 function closeJournal() {
   if (els.dialog.open) els.dialog.close();
-  if (/^#journal-\d+$/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search);
+  if (/^#journal-\d+$/.test(location.hash)) history.replaceState(null, "", lastNonJournalHash);
   if (lastJournalTrigger?.isConnected) lastJournalTrigger.focus();
 }
 
@@ -657,16 +675,63 @@ function exportCatalogue() {
 let recommendationEngine = null;
 let searchTimer;
 let lastJournalTrigger = null;
+let lastNonJournalHash = "#catalog";
+
+function activateWorkspace(name, { updateHash = false, focus = false } = {}) {
+  const selected = name === "recommender" ? "recommender" : "catalog";
+  for (const tab of els.workspaceTabs.querySelectorAll('[role="tab"]')) {
+    const active = tab.dataset.workspace === selected;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+    tab.setAttribute("tabindex", active ? "0" : "-1");
+    if (active && focus) tab.focus();
+  }
+  els.catalog.hidden = selected !== "catalog";
+  els.recommender.hidden = selected !== "recommender";
+  if (updateHash) {
+    lastNonJournalHash = `#${selected}`;
+    if (location.hash !== lastNonJournalHash) history.pushState(null, "", lastNonJournalHash);
+  }
+}
+
+els.workspaceTabs.addEventListener("click", event => {
+  const tab = event.target.closest('[role="tab"]');
+  if (tab) activateWorkspace(tab.dataset.workspace, { updateHash:true });
+});
+els.workspaceTabs.addEventListener("keydown", event => {
+  const tab = event.target.closest('[role="tab"]');
+  if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const tabs = [...els.workspaceTabs.querySelectorAll('[role="tab"]')];
+  const index = tabs.indexOf(tab);
+  const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1
+    : (index + (event.key === "ArrowLeft" ? 1 : -1) + tabs.length) % tabs.length;
+  activateWorkspace(tabs[next].dataset.workspace, { updateHash:true, focus:true });
+});
+document.querySelector(".hero__recommend-link").addEventListener("click", event => {
+  event.preventDefault();
+  activateWorkspace("recommender", { updateHash:true });
+  els.workspaceTabs.scrollIntoView({ block:"start" });
+});
 els.recommendForm.addEventListener("submit", event => {
   event.preventDefault();
   if (!recommendationEngine) return;
-  const title = document.querySelector("#paper-title").value.trim();
-  const abstract = document.querySelector("#paper-abstract").value.trim();
-  const keywords = document.querySelector("#paper-keywords").value.trim();
-  if (title.length < 5 || abstract.length < 30 || keywords.length < 2) {
+  const fields = [
+    { input: document.querySelector("#paper-title"), min:5, message:"عنوان مقاله را با دست‌کم ۵ نویسه وارد کنید." },
+    { input: document.querySelector("#paper-abstract"), min:30, message:"چکیده را با دست‌کم ۳۰ نویسه وارد کنید." },
+    { input: document.querySelector("#paper-keywords"), min:2, message:"دست‌کم یک کلیدواژه وارد کنید." },
+  ];
+  const invalid = fields.find(({ input, min }) => input.value.trim().length < min);
+  if (invalid) {
+    invalid.input.setAttribute("aria-invalid", "true");
+    const error = document.querySelector(`#${invalid.input.id}-error`);
+    error.textContent = invalid.message;
+    error.hidden = false;
     els.recommendStatus.textContent = "عنوان، چکیده و کلمات کلیدی را کامل‌تر وارد کنید.";
+    invalid.input.focus();
     return;
   }
+  const [title, abstract, keywords] = fields.map(({ input }) => input.value.trim());
   const matches = recommendationEngine.recommend({ title, abstract, keywords }, 10);
   els.recommendResults.hidden = false;
   els.recommendList.innerHTML = matches.length
@@ -676,7 +741,14 @@ els.recommendForm.addEventListener("submit", event => {
     ? `${faNumber.format(matches.length)} نشریهٔ متمایز بر اساس میزان تطابق مرتب شد.`
     : "پیشنهاد مناسبی در حوزه‌های این فهرست پیدا نشد.";
 });
-els.recommendForm.addEventListener("input", () => {
+els.recommendForm.addEventListener("input", event => {
+  const input = event.target;
+  if (input.id?.startsWith("paper-")) {
+    input.removeAttribute("aria-invalid");
+    const error = document.querySelector(`#${input.id}-error`);
+    error.hidden = true;
+    error.textContent = "";
+  }
   els.recommendResults.hidden = true;
   if (recommendationEngine) els.recommendStatus.textContent = "برای دیدن پیشنهادهای به‌روز، دوباره دکمه را بزنید.";
 });
@@ -700,7 +772,12 @@ els.export.addEventListener("click", exportCatalogue);
 els.sort.addEventListener("change", e => { state.sort = e.target.value; applyFilters(); });
 els.clear.addEventListener("click", clearFilters);
 document.querySelector("[data-clear]").addEventListener("click", clearFilters);
-els.favoritesOnly.addEventListener("click", () => { state.favoritesOnly = !state.favoritesOnly; applyFilters(); });
+els.favoritesOnly.addEventListener("click", () => {
+  activateWorkspace("catalog", { updateHash:true });
+  state.favoritesOnly = !state.favoritesOnly;
+  applyFilters();
+  els.workspaceTabs.scrollIntoView({ block:"start" });
+});
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => updateView(button.dataset.view)));
 
 els.results.addEventListener("click", event => {
@@ -712,16 +789,22 @@ els.results.addEventListener("click", event => {
   if (detail) { lastJournalTrigger = detail; return showJournal(detail.dataset.detail); }
 });
 
-els.next.addEventListener("click", () => { state.page += 1; render(); document.querySelector("#results-heading").scrollIntoView({ behavior:"smooth", block:"start" }); });
-els.prev.addEventListener("click", () => { state.page -= 1; render(); document.querySelector("#results-heading").scrollIntoView({ behavior:"smooth", block:"start" }); });
+els.next.addEventListener("click", () => { state.page += 1; render(); document.querySelector("#results-heading").scrollIntoView({ block:"start" }); });
+els.prev.addEventListener("click", () => { state.page -= 1; render(); document.querySelector("#results-heading").scrollIntoView({ block:"start" }); });
 els.dialogClose.addEventListener("click", closeJournal);
 els.dialog.addEventListener("click", event => { if (event.target === els.dialog) closeJournal(); });
 els.dialog.addEventListener("cancel", event => { event.preventDefault(); closeJournal(); });
-window.addEventListener("hashchange", () => {
+function handleNavigation() {
   const match = location.hash.match(/^#journal-(\d+)$/);
   if (match && state.journals.length) showJournal(match[1], { updateHash:false });
-  else if (els.dialog.open) closeJournal();
-});
+  else {
+    if (location.hash === "#recommender") activateWorkspace("recommender");
+    else if (location.hash === "#catalog" || location.hash === "#results") activateWorkspace("catalog");
+    if (els.dialog.open) closeJournal();
+  }
+}
+window.addEventListener("hashchange", handleNavigation);
+window.addEventListener("popstate", handleNavigation);
 els.compareClose.addEventListener("click", () => els.compareDialog.close());
 els.compareDialog.addEventListener("click", event => { if (event.target === els.compareDialog) els.compareDialog.close(); });
 els.compareShow.addEventListener("click", showCompare);
@@ -730,7 +813,9 @@ els.compareClear.addEventListener("click", () => { state.compare.clear(); render
 
 document.addEventListener("keydown", event => {
   if (event.key === "/" && !["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) {
-    event.preventDefault(); els.search.focus();
+    event.preventDefault();
+    activateWorkspace("catalog", { updateHash:true });
+    els.search.focus();
   }
 });
 
@@ -740,6 +825,10 @@ document.querySelectorAll("[data-view]").forEach(button => {
   button.setAttribute("aria-pressed", String(active));
 });
 renderPersistentUi();
+if (location.hash === "#recommender") {
+  activateWorkspace("recommender");
+  requestAnimationFrame(() => els.workspaceTabs.scrollIntoView({ block:"start" }));
+} else if (location.hash === "#catalog" || location.hash === "#results") activateWorkspace("catalog");
 
 loadPackedData()
   .then(journals => {

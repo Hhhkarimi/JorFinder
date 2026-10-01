@@ -13,6 +13,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from persian_text import repair_persian_text
+
 CHUNK_SIZE = 12000
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
@@ -22,9 +24,9 @@ def build(source: Path) -> None:
     records = json.loads(source.read_text(encoding="utf-8"))
     if not isinstance(records, list) or not records:
         raise ValueError("Expected a nonempty array of source records")
-    # The extracted PDF has a recurring reversed-letter typo in Persian text.
+    # Repair recurring PDF extraction seams before publishing the payload.
     records = [
-        {key: value.replace("اعالم", "اعلام") if isinstance(value, str) else value
+        {key: repair_persian_text(value) if isinstance(value, str) else value
          for key, value in record.items()}
         for record in records
     ]

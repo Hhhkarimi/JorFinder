@@ -1,8 +1,8 @@
 {
   "format": "gzip-base64",
   "prefix": "catalog",
-  "parts": 48,
+  "parts": 47,
   "records": 971,
   "journals": 970,
-  "sha256": "016918e5a0a7c92fe253b6fdf4b79b35063ed3e03ea62ee6d67023556b9fc5b8"
+  "sha256": "7c288af8b1fe9376bbe101a970ddbba18976bc798ccc3f0f0bf863a15553ce3e"
 }
